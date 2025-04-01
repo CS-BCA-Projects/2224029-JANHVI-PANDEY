@@ -1,0 +1,143 @@
+/* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f7fa;
+    color: #333;
+    margin: 0;
+}
+
+/* Navbar */
+.navbar {
+    background-color: #2c3e50;
+    padding: 15px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff !important;
+}
+.navbar-nav .nav-link {
+    color: #fff !important;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+.navbar-nav .nav-link:hover {
+    color: #f39c12 !important;
+}
+
+/* Container */
+.container {
+    padding: 30px 15px;
+}
+
+/* Headings */
+h1, h2 {
+    color: #2c3e50;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+/* Product Cards */
+.product-list, .cart-items, .order-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+.product, .cart-item, .order {
+    background-color: #fff;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 250px;
+    text-align: center;
+    padding: 15px;
+}
+.product:hover, .cart-item:hover, .order:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+.product img, .cart-item img {
+    border-radius: 8px;
+    max-height: 150px;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+.card-title {
+    font-size: 1.2rem;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+.card-text {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #f39c12;
+    border: none;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.btn-primary:hover {
+    background-color: #e67e22;
+    transform: scale(1.05);
+}
+.btn-secondary {
+    background-color: #7f8c8d;
+    border: none;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.btn-secondary:hover {
+    background-color: #95a5a6;
+    transform: scale(1.05);
+}
+
+/* Search Bar */
+.input-group {
+    max-width: 500px;
+    margin: 0 auto;
+}
+.form-control {
+    border-radius: 20px 0 0 20px;
+    border: 1px solid #ddd;
+    box-shadow: none;
+}
+.input-group .btn-primary {
+    border-radius: 0 20px 20px 0;
+}
+
+/* Alerts */
+.alert {
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Footer */
+footer {
+    background-color: #2c3e50;
+    color: #fff;
+    padding: 20px 0;
+    text-align: center;
+    margin-top: 40px;
+}
+footer p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+footer a {
+    color: #f39c12;
+    text-decoration: none;
+}
+footer a:hover {
+    text-decoration: underline;
+}
