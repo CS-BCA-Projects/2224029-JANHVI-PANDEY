@@ -1,91 +1,108 @@
-<!DOCTYPE html>
-<html lang="en">
-{% load static %}
-<head>
-    <title>Register</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
+{% extends 'store/base.html' %}
+{% block title %}Register{% endblock %}
+{% block content %}
+    <h2 class="text-center">Register</h2>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">SnapShop</a>
-            <div class="navbar-nav">
-                {% if user.is_authenticated %}
-                    <a class="nav-link" href="{% url 'view_cart' %}">Cart</a>
-                    <a class="nav-link" href="{% url 'logout' %}">Logout ({{ user.email }})</a>
-                {% else %}
-                    <a class="nav-link" href="{% url 'login' %}">Login</a>
-                    <a class="nav-link" href="{% url 'register' %}">Register</a>
-                {% endif %}
-            </div>
+    <!-- Error Message Handling -->
+    {% if form.errors %}
+        <div class="alert alert-danger mt-3">
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
         </div>
-    </nav>
-
-    <h2>Register</h2>
-
-    <!-- ✅ Error Message Handling -->
-    {% if error %}
-        <p style="color: red;">{{ error }}</p>
     {% endif %}
 
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" class="mx-auto" style="max-width: 400px;" id="register-form">
         {% csrf_token %}
-        {{ form.as_p }}
+        <div class="mb-3">
+            <label for="id_email" class="form-label">Email</label>
+            <input type="email" name="email" id="id_email" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="id_name" class="form-label">Name</label>
+            <input type="text" name="name" id="id_name" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="id_password1" class="form-label">Password</label>
+            <input type="password" name="password1" id="id_password1" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="id_password2" class="form-label">Password Confirmation</label>
+            <input type="password" name="password2" id="id_password2" class="form-control" required>
+        </div>
 
         <!-- Webcam Capture -->
-        <video id="video" width="320" height="240" autoplay></video>
+        <video id="video" width="320" height="240" autoplay class="mx-auto d-block mb-3"></video>
         <canvas id="canvas" width="320" height="240" style="display: none;"></canvas>
-        <button type="button" onclick="captureImage()">Capture Face</button>
+        <button type="button" class="btn btn-primary mb-3" onclick="captureImage()">Capture Face</button>
 
         <!-- Hidden Input to Store Captured Image -->
         <input type="hidden" name="face_image" id="face_image">
 
-        <button type="submit">Register</button>
+        <button type="submit" class="btn btn-primary w-100">Register</button>
     </form>
 
+    <p class="text-center mt-3">Already have an account? <a href="{% url 'login' %}">Login</a></p>
+{% endblock %}
+{% block extra_scripts %}
     <script>
         let video = document.getElementById('video');
         let canvas = document.getElementById('canvas');
         let context = canvas.getContext('2d');
 
-        // ✅ Access Webcam
+        // Access Webcam
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => { video.srcObject = stream; })
-            .catch(err => console.log("Error: ", err));
-
-            function captureImage() {
-        context.drawImage(video, 0, 0, 320, 240);
-        let imageData = canvas.toDataURL('image/png');
-        document.getElementById('face_image').value = imageData;
-        alert("Face Captured!");
-    }
-
-    document.querySelector('form').onsubmit = function() {
-        if (!document.getElementById('face_image').value) {
-            alert("Please capture your face first!");
-            return false;
-        }
-        return true;
-    };
+            .catch(err => console.log("Error accessing webcam: ", err));
 
         function captureImage() {
             context.drawImage(video, 0, 0, 320, 240);
-
-            // ✅ Convert Image to Base64
             let imageData = canvas.toDataURL('image/png');
             document.getElementById('face_image').value = imageData;
-
             alert("Face Captured Successfully!");
         }
+
+        // Ensure face is captured before submitting
+        document.getElementById('register-form').onsubmit = function(event) {
+            // Check if face is captured
+            if (!document.getElementById('face_image').value) {
+                alert("Please capture your face first!");
+                event.preventDefault();
+                return false;
+            }
+
+            // Password validation
+            const password = document.getElementById('id_password1').value;
+            const passwordConfirm = document.getElementById('id_password2').value;
+
+            // Check if passwords match
+            if (password !== passwordConfirm) {
+                alert("Passwords do not match!");
+                event.preventDefault();
+                return false;
+            }
+
+            // Password requirements
+            const minLength = password.length < 8;
+            const isNumericOnly = /^\d+$/.test(password);
+            const hasNoSpecialChar = !/[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+            if (minLength || isNumericOnly || hasNoSpecialChar) {
+                let errorMessage = "Your password must:\n";
+                if (minLength) errorMessage += "- Be at least 8 characters long\n";
+                if (isNumericOnly) errorMessage += "- Not be entirely numeric\n";
+                if (hasNoSpecialChar) errorMessage += "- Include at least one special character (e.g., !@#$%^&*)\n";
+                alert(errorMessage);
+                event.preventDefault();
+                return false;
+            }
+
+            return true;
+        };
     </script>
-
-<footer>
-    <p>&copy; 2025 SnapShop. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{% static 'js/main.js' %}"></script>
-</body>
-</html>
+{% endblock %}

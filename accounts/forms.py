@@ -1,9 +1,10 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm
 from .models import CustomUser
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
+    name = forms.CharField(max_length=100, required=True)
     face_image = forms.CharField(widget=forms.HiddenInput())  # Mandatory
 
     class Meta:
@@ -16,8 +17,9 @@ class RegisterForm(UserCreationForm):
             raise forms.ValidationError("Face image is required for registration!")
         return face_image
 
-class LoginForm(forms.Form):  # AuthenticationForm se replace kiya, kyunki face mandatory hai
+class LoginForm(forms.Form):
     email = forms.EmailField(label="Email")
+    password = forms.CharField(widget=forms.PasswordInput, label="Password")
     face_image = forms.CharField(widget=forms.HiddenInput())  # Mandatory
 
     def clean_face_image(self):

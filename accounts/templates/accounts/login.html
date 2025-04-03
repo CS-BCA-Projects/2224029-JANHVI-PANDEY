@@ -1,88 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
-{% load static %}
-<head>
-    <title>Login</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f8f9fa;
-        }
-        h2 {
-            color: #007bff;
-        }
-        .error {
-            color: red;
-            margin-bottom: 10px;
-        }
-        form {
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
-</head>
-<body>
-
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">SnapShop</a>
-            <div class="navbar-nav">
-                {% if user.is_authenticated %}
-                    <a class="nav-link" href="{% url 'view_cart' %}">Cart</a>
-                    <a class="nav-link" href="{% url 'logout' %}">Logout ({{ user.email }})</a>
-                {% else %}
-                    <a class="nav-link" href="{% url 'login' %}">Login</a>
-                    <a class="nav-link" href="{% url 'register' %}">Register</a>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
-
-    <h2>Login</h2>
+{% extends 'store/base.html' %}
+{% block title %}Login{% endblock %}
+{% block content %}
+    <h2 class="text-center">Login</h2>
 
     <!-- Error Message Handling -->
     {% if form.errors %}
-        <p class="error">Please capture your face to login!</p>
+        <div class="alert alert-danger mt-3">
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
     {% endif %}
     {% if error %}
-        <p class="error">{{ error }}</p>
+        <div class="alert alert-danger mt-3">{{ error }}</div>
     {% endif %}
 
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" class="mx-auto" style="max-width: 400px;" id="login-form">
         {% csrf_token %}
-        {{ form.as_p }}
+        <div class="mb-3">
+            <label for="id_email" class="form-label">Email</label>
+            <input type="email" name="email" id="id_email" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="id_password" class="form-label">Password</label>
+            <input type="password" name="password" id="id_password" class="form-control" required>
+        </div>
 
         <!-- Webcam Capture -->
-        <video id="video" width="320" height="240" autoplay></video>
+        <video id="video" width="320" height="240" autoplay class="mx-auto d-block mb-3"></video>
         <canvas id="canvas" width="320" height="240" style="display: none;"></canvas>
-        <button type="button" onclick="captureImage()">Capture Face</button>
+        <button type="button" class="btn btn-primary mb-3" onclick="captureImage()">Capture Face</button>
 
         <!-- Hidden Input to Store Captured Image -->
         <input type="hidden" name="face_image" id="face_image">
 
-        <button type="submit">Login</button>
+        <button type="submit" class="btn btn-primary w-100">Login</button>
     </form>
 
-    <p>Don't have an account? <a href="{% url 'register' %}">Register</a></p>
-
+    <p class="text-center mt-3">Don't have an account? <a href="{% url 'register' %}">Register</a></p>
+{% endblock %}
+{% block extra_scripts %}
     <script>
         let video = document.getElementById('video');
         let canvas = document.getElementById('canvas');
@@ -101,20 +63,13 @@
         }
 
         // Ensure face is captured before submitting
-        document.querySelector('form').onsubmit = function() {
+        document.getElementById('login-form').onsubmit = function(event) {
             if (!document.getElementById('face_image').value) {
                 alert("Please capture your face first!");
+                event.preventDefault();
                 return false;
             }
             return true;
         };
     </script>
-
-<footer>
-    <p>&copy; 2025 SnapShop. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{% static 'js/main.js' %}"></script>
-</body>
-</html>
+{% endblock %}
