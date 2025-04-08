@@ -6,43 +6,45 @@
 <div class="container my-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="fw-bold">Your Cart</h1>
-        <a href="{% url 'home' %}" class="btn btn-outline-secondary">Back to Products</a>
+        <a href="{% url 'store:home' %}" class="btn btn-outline-secondary">Back to Products</a> <!-- Updated with namespace -->
     </div>
 
     {% if cart_items %}
         <div class="row">
             <div class="col-lg-8">
                 <div class="card shadow-sm">
-                    <div class="card-body p-0">
+                    <div class="card-body">
                         {% for item in cart_items %}
-                            <div class="cart-item d-flex align-items-start border-bottom p-4 mb-3">
-                                <div class="me-4">
+                            <div class="d-flex align-items-center border-bottom py-3">
+                                <div class="me-3">
                                     {% if item.product.image %}
-                                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-fluid rounded" style="width: 120px; height: 120px; object-fit: cover;">
+                                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-fluid rounded" style="width: 100px; height: 100px; object-fit: cover;">
                                     {% else %}
-                                        <div class="bg-light text-center rounded" style="width: 120px; height: 120px; line-height: 120px; font-size: 14px;">
+                                        <div class="bg-light text-center rounded" style="width: 100px; height: 100px; line-height: 100px; font-size: 14px;">
                                             No Image
                                         </div>
                                     {% endif %}
                                 </div>
                                 <div class="flex-grow-1">
-                                    <h5 class="mb-2 fw-bold">{{ item.product.name }}</h5>
-                                    <p class="text-muted mb-2">{{ item.product.description|truncatewords:10 }}</p>
-                                    <p class="text-success fw-bold mb-2">Price: {{ item.product.price|to_inr }}</p>
-                                    <form method="post" action="{% url 'update_cart' item.id %}" class="d-flex align-items-center mb-2">
-                                        {% csrf_token %}
-                                        <label class="me-3 fw-medium">Qty:</label>
-                                        <div class="input-group" style="width: 150px;">
-                                            <button class="btn btn-outline-secondary" type="button" onclick="this.parentNode.querySelector('input[type=number]').stepDown(); this.form.submit();">-</button>
-                                            <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="form-control text-center" style="max-width: 80px;" onchange="this.form.submit();">
-                                            <button class="btn btn-outline-secondary" type="button" onclick="this.parentNode.querySelector('input[type=number]').stepUp(); this.form.submit();">+</button>
-                                        </div>
-                                        <button type="submit" class="btn btn-warning btn-sm ms-3">Update</button>
-                                    </form>
-                                    <p class="text-muted fw-medium mb-2">Subtotal: {{ item.product.price|multiply:item.quantity|to_inr }}</p>
+                                    <h5 class="mb-1">{{ item.product.name }}</h5>
+                                    <p class="text-muted mb-1">{{ item.product.description|truncatewords:10 }}</p>
+                                    <p class="text-success fw-bold mb-1">Price: {{ item.product.price|to_inr }}</p>
+                                    <div class="d-flex align-items-center mb-1">
+                                        <form method="post" action="{% url 'store:update_cart' item.id %}" class="d-flex align-items-center"> <!-- Updated with namespace -->
+                                            {% csrf_token %}
+                                            <label class="me-2">Qty:</label>
+                                            <div class="input-group" style="width: 120px;">
+                                                <button class="btn btn-outline-secondary" type="button" onclick="this.parentNode.querySelector('input').stepDown(); this.form.submit();">-</button>
+                                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="form-control text-center">
+                                                <button class="btn btn-outline-secondary" type="button" onclick="this.parentNode.querySelector('input').stepUp(); this.form.submit();">+</button>
+                                            </div>
+                                            <button type="submit" class="btn btn-warning btn-sm ms-2">Update</button>
+                                        </form>
+                                    </div>
+                                    <p class="text-muted mb-0">Subtotal: {{ item.product.price|multiply:item.quantity|to_inr }}</p>
                                 </div>
-                                <div class="ms-3 d-flex flex-column justify-content-between" style="height: 100%;">
-                                    <a href="{% url 'remove_from_cart' item.id %}" class="btn btn-danger btn-sm mb-auto">Remove</a>
+                                <div>
+                                    <a href="{% url 'store:remove_from_cart' item.id %}" class="btn btn-danger btn-sm">Remove</a> <!-- Updated with namespace -->
                                 </div>
                             </div>
                         {% endfor %}
@@ -55,20 +57,20 @@
                         <h5 class="mb-0">Order Summary</h5>
                     </div>
                     <div class="card-body">
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="fw-medium">Subtotal</span>
-                            <span class="fw-medium">{{ total_price|to_inr }}</span>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal</span>
+                            <span>{{ total_price|to_inr }}</span>
                         </div>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="fw-medium">Shipping</span>
-                            <span class="text-success fw-medium">Free</span>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping</span>
+                            <span class="text-success">Free</span>
                         </div>
                         <hr>
-                        <div class="d-flex justify-content-between fw-bold mb-4">
+                        <div class="d-flex justify-content-between fw-bold mb-3">
                             <span>Total</span>
                             <span>{{ total_price|to_inr }}</span>
                         </div>
-                        <a href="{% url 'checkout' %}" class="btn btn-success btn-lg w-100">Proceed to Checkout</a>
+                        <a href="{% url 'store:checkout' %}" class="btn btn-success w-100">Proceed to Checkout</a> <!-- Updated with namespace -->
                     </div>
                 </div>
             </div>
@@ -77,7 +79,7 @@
         <div class="text-center py-5">
             <h3 class="text-muted">Your cart is empty.</h3>
             <p>Add some products to your cart to get started!</p>
-            <a href="{% url 'home' %}" class="btn btn-primary">Shop Now</a>
+            <a href="{% url 'store:home' %}" class="btn btn-primary">Shop Now</a> <!-- Updated with namespace -->
         </div>
     {% endif %}
 </div>

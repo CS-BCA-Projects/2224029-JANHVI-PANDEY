@@ -1,75 +1,149 @@
 {% extends 'store/base.html' %}
 {% block title %}Login{% endblock %}
 {% block content %}
-    <h2 class="text-center">Login</h2>
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h2 class="text-center mb-4">Login</h2>
 
-    <!-- Error Message Handling -->
-    {% if form.errors %}
-        <div class="alert alert-danger mt-3">
-            {% for field in form %}
-                {% for error in field.errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
-            {% endfor %}
-            {% for error in form.non_field_errors %}
-                <p>{{ error }}</p>
-            {% endfor %}
+                <!-- Error Message Handling -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                {% if error %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ error }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endif %}
+                {% if form.errors %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <p>{{ field.label }}: {{ error }}</p>
+                            {% endfor %}
+                        {% endfor %}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data" class="card p-4 shadow-sm" id="login-form">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_email" class="form-label">Email</label>
+                        {{ form.email }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_password" class="form-label">Password</label>
+                        {{ form.password }}
+                    </div>
+
+                    <!-- Webcam Capture -->
+                    <div class="text-center mb-3">
+                        <video id="video" width="320" height="240" autoplay class="border rounded mb-2" style="display: block;"></video>
+                        <canvas id="canvas" width="320" height="240" style="display: none;"></canvas>
+                        <button type="button" class="btn btn-primary" id="captureFaceBtn" onclick="captureImage()">Capture Face</button>
+                        <button type="button" class="btn btn-secondary mt-2" onclick="retryCamera()">Retry Camera</button>
+                        <p id="cameraStatus" class="text-muted mt-2"></p>
+                    </div>
+
+                    <!-- Hidden Input to Store Captured Image -->
+                    {{ form.face_image }}
+
+                    <button type="submit" class="btn btn-primary w-100 mt-3">Login</button>
+                </form>
+
+                <p class="text-center mt-3">Don't have an account? <a href="{% url 'accounts:register' %}" class="text-decoration-none">Register</a></p>
+            </div>
         </div>
-    {% endif %}
-    {% if error %}
-        <div class="alert alert-danger mt-3">{{ error }}</div>
-    {% endif %}
-
-    <form method="post" enctype="multipart/form-data" class="mx-auto" style="max-width: 400px;" id="login-form">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="id_email" class="form-label">Email</label>
-            <input type="email" name="email" id="id_email" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label for="id_password" class="form-label">Password</label>
-            <input type="password" name="password" id="id_password" class="form-control" required>
-        </div>
-
-        <!-- Webcam Capture -->
-        <video id="video" width="320" height="240" autoplay class="mx-auto d-block mb-3"></video>
-        <canvas id="canvas" width="320" height="240" style="display: none;"></canvas>
-        <button type="button" class="btn btn-primary mb-3" onclick="captureImage()">Capture Face</button>
-
-        <!-- Hidden Input to Store Captured Image -->
-        <input type="hidden" name="face_image" id="face_image">
-
-        <button type="submit" class="btn btn-primary w-100">Login</button>
-    </form>
-
-    <p class="text-center mt-3">Don't have an account? <a href="{% url 'register' %}">Register</a></p>
-{% endblock %}
-{% block extra_scripts %}
+    </div>
+    <!-- Move script to body end -->
     <script>
-        let video = document.getElementById('video');
-        let canvas = document.getElementById('canvas');
-        let context = canvas.getContext('2d');
-
-        // Access Webcam
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => { video.srcObject = stream; })
-            .catch(err => console.log("Error accessing webcam: ", err));
-
-        function captureImage() {
-            context.drawImage(video, 0, 0, 320, 240);
-            let imageData = canvas.toDataURL('image/png');
-            document.getElementById('face_image').value = imageData;
-            alert("Face Captured Successfully!");
-        }
-
-        // Ensure face is captured before submitting
-        document.getElementById('login-form').onsubmit = function(event) {
-            if (!document.getElementById('face_image').value) {
-                alert("Please capture your face first!");
-                event.preventDefault();
-                return false;
+        window.onload = function() {
+            if (!document.getElementById('video') || !document.getElementById('canvas') || !document.getElementById('cameraStatus')) {
+                console.error('DOM elements not found!');
+                return;
             }
-            return true;
+
+            window.video = document.getElementById('video');
+            window.canvas = document.getElementById('canvas');
+            window.context = canvas.getContext('2d');
+            window.stream = null;
+            window.cameraStatus = document.getElementById('cameraStatus');
+            window.faceImageInput = document.querySelector('input[name="face_image"]');
+
+            window.startCamera = function() {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    cameraStatus.textContent = 'Camera not supported.';
+                    return;
+                }
+                cameraStatus.textContent = 'Requesting permission...';
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+                    .then(stream => {
+                        window.stream = stream;
+                        video.srcObject = stream;
+                        video.play();
+                        cameraStatus.textContent = 'Camera active.';
+                        console.log('Camera started.');
+                    })
+                    .catch(err => {
+                        console.error('Camera error:', err);
+                        cameraStatus.textContent = 'Access denied: ' + err.message;
+                        alert('Camera failed. Check settings or retry. Error: ' + err.message);
+                    });
+            };
+
+            window.retryCamera = function() {
+                if (stream) stream.getTracks().forEach(track => track.stop());
+                startCamera();
+            };
+
+            window.captureImage = function() {
+                if (stream && video.readyState === video.HAVE_ENOUGH_DATA) {
+                    context.drawImage(video, 0, 0, 320, 240);
+                    let imageData = canvas.toDataURL('image/png');
+                    if (faceImageInput) {
+                        faceImageInput.value = imageData;
+                        cameraStatus.textContent = 'Face captured!';
+                        console.log('Face image data set:', imageData.substring(0, 50) + '...');
+                    } else {
+                        console.error('Face image input not found!');
+                    }
+                    alert('Face captured!');
+                } else {
+                    cameraStatus.textContent = 'Camera not ready. Retry.';
+                    alert('Camera not ready. Retry or check permissions.');
+                    retryCamera();
+                }
+            };
+
+            startCamera();
+
+            document.getElementById('login-form').onsubmit = function(event) {
+                const faceImageValue = faceImageInput ? faceImageInput.value : '';
+                console.log('Face image value before submit:', faceImageValue.substring(0, 50) + '...');
+                if (!faceImageValue || faceImageValue === '') {
+                    alert('Please capture your face first!');
+                    event.preventDefault();
+                    return false;
+                }
+                return true;
+            };
+
+            window.onunload = function() {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    cameraStatus.textContent = 'Camera stopped.';
+                }
+            };
         };
     </script>
 {% endblock %}

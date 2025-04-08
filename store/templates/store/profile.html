@@ -1,29 +1,136 @@
 {% extends 'store/base.html' %}
 {% load currency_tags %}
-{% block title %}Your Profile{% endblock %}
+{% block title %}Profile - SnapShop{% endblock %}
 {% block content %}
-    <h1>Your Profile</h1>
-    <p>Email: {{ user.email }}</p>
-    <p>Name: {{ user.name }}</p>
+<style>
+    .profile-container {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .profile-header {
+        background: linear-gradient(90deg, #007bff, #00c4ff);
+        color: white;
+        padding: 20px;
+        border-radius: 10px 10px 0 0;
+        text-align: center;
+    }
+    .profile-header h1 {
+        margin: 0;
+        font-size: 2rem;
+    }
+    .user-details {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    .orders-table th, .orders-table td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+    }
+    .orders-table th {
+        background-color: #007bff;
+        color: white;
+        font-weight: 600;
+    }
+    .orders-table tr:last-child td {
+        border-bottom: none;
+    }
+    .orders-table tr:hover {
+        background-color: #f1f3f5;
+    }
+    .order-items {
+        margin-top: 10px;
+        padding-left: 20px;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    .no-orders {
+        text-align: center;
+        padding: 50px 0;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+</style>
 
-    <h2>Your Orders</h2>
-    <div class="order-list">
-        {% for order in orders %}
-            <div class="order card mb-3">
-                <div class="card-body">
-                    <h3 class="card-title">Order #{{ order.id }}</h3>
-                    <p>Placed on: {{ order.created_at|date:"d M Y, h:i A" }}</p>
-                    <p>Total: {{ order.total_price|to_inr }}</p>
-                    <h4>Items:</h4>
-                    <ul>
-                        {% for item in order.orderitem_set.all %}
-                            <li>{{ item.product.name }} (x{{ item.quantity }}) - {{ item.product.price|to_inr }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
+<div class="container my-5">
+    <div class="profile-container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <h1>Welcome, {{ request.user.username|title }}!</h1>
+            <p class="mb-0">Manage your orders and account details</p>
+        </div>
+
+        <!-- User Details -->
+        <div class="user-details">
+            <h4 class="mb-3">Account Details</h4>
+            <p><strong>Name:</strong> {{ request.user.username|title }}</p>
+            <p><strong>Email:</strong> {{ request.user.email }}</p>
+        </div>
+
+        <!-- Orders Section -->
+        <h3 class="mb-4">Your Orders</h3>
+        {% if orders %}
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Payment Method</th>
+                        <th>Shipping Address</th>
+                        <th>Items</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.created_at|date:"M d, Y, h:i A" }}</td>
+                            <td>{{ order.total_price|to_inr }}</td>
+                            <td>{{ order.payment_method }}</td>
+                            <td>
+                                {% if order.address %}
+                                    {{ order.address.full_name }}<br>
+                                    {{ order.address.address_line_1 }}{% if order.address.address_line_2 %}, {{ order.address.address_line_2 }}{% endif %}<br>
+                                    {{ order.address.city }}, {{ order.address.state }} - {{ order.address.postal_code }}<br>
+                                    {{ order.address.country }}<br>
+                                    Phone: {{ order.address.phone_number }}
+                                {% else %}
+                                    No address provided.
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="order-items">
+                                    {% for item in order.orderitem_set.all %}
+                                        <p>{{ item.product.name }} (x{{ item.quantity }})</p>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="no-orders">
+                <h4 class="text-muted">No Orders Yet</h4>
+                <p>Start shopping to see your orders here!</p>
+                <a href="{% url 'home' %}" class="btn btn-primary">Shop Now</a>
             </div>
-        {% empty %}
-            <p>You have no orders yet.</p>
-        {% endfor %}
+        {% endif %}
     </div>
+</div>
 {% endblock %}

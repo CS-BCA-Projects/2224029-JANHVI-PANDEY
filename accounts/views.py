@@ -1,28 +1,34 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from .forms import RegisterForm
+from .forms import RegisterForm, LoginForm
 from .utils import save_face_image, verify_face
-import base64
-from io import BytesIO
-from PIL import Image
-import numpy as np
-import cv2
+from .models import CustomUser  # Custom model import
 
 def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         face_image_data = request.POST.get('face_image')
 
-        if form.is_valid() and face_image_data:
-            user = form.save()
-            # Save face image
-            save_face_image(user, face_image_data)
-            # Add success message
-            messages.success(request, "You are successfully registered for SnapShop! Please log in to continue.")
-            return redirect('login')  # Redirect to login page
+        print(f"[SERVER] Received POST data: {dict(request.POST)}")
+        print(f"[SERVER] Received face_image_data: {face_image_data[:50] if face_image_data else 'None'}")
+        if form.is_valid():
+            if face_image_data:
+                user = form.save()
+                try:
+                    save_face_image(user, face_image_data)
+                    messages.success(request, "You are successfully registered for SnapShop! Please log in to continue.")
+                    return redirect('accounts:login')
+                except Exception as e:
+                    messages.error(request, f"Error saving face image: {str(e)}")
+                    print(f"[SERVER] Save face image error: {str(e)}")
+            else:
+                messages.error(request, "No face image captured. Please capture your face.")
+                form.add_error('face_image', "Face image is required!")
+                print("[SERVER] No face image data received.")
         else:
             messages.error(request, "Please correct the errors below or ensure you captured your face.")
+            print("[SERVER] Form errors:", form.errors)
     else:
         form = RegisterForm()
 
@@ -31,29 +37,46 @@ def register(request):
 def login_view(request):
     error = None
     if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        face_image_data = request.POST.get('face_image')
+        form = LoginForm(request.POST)
+        print(f"[SERVER] Received POST data in login: {dict(request.POST)}")
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            face_image_data = request.POST.get('face_image')
 
-        user = authenticate(request, email=email, password=password)
-        if user is not None:
-            if face_image_data:
-                # Verify face
-                if verify_face(user, face_image_data):
-                    login(request, user)
-                    # Add success message
-                    messages.success(request, "Welcome back! You are now logged in to SnapShop.")
-                    return redirect('home')  # Redirect to home page
+            print(f"[SERVER] Authenticating user: {email}, password: {password[:2]}..., face_image: {face_image_data[:50] if face_image_data else 'None'}")
+            user = authenticate(request, username=email, password=password)
+            if user is not None:
+                print("[SERVER] User authenticated successfully.")
+                if face_image_data:
+                    try:
+                        print("[SERVER] Verifying face...")
+                        if verify_face(user, face_image_data):
+                            print("[SERVER] Face verified successfully.")
+                            login(request, user)
+                            messages.success(request, "Welcome back! You are now logged in to SnapShop.")
+                            return redirect('store:home')
+                        else:
+                            error = "Face verification failed. Please try again."
+                            print("[SERVER] Face verification failed.")
+                    except Exception as e:
+                        error = f"Face verification error: {str(e)}"
+                        print(f"[SERVER] Face verification exception: {str(e)}")
                 else:
-                    error = "Face verification failed. Please try again."
+                    error = "Please capture your face for verification."
+                    print("[SERVER] No face image data received.")
             else:
-                error = "Please capture your face for verification."
+                error = "Invalid email or password."
+                print("[SERVER] Authentication failed.")
         else:
-            error = "Invalid email or password."
+            error = "Invalid form data. Please check your input."
+            print("[SERVER] Login form errors:", form.errors)
+    else:
+        form = LoginForm()
 
-    return render(request, 'accounts/login.html', {'error': error})
+    return render(request, 'accounts/login.html', {'form': form, 'error': error})
 
 def logout_view(request):
     logout(request)
     messages.success(request, "You have been logged out successfully.")
-    return redirect('login')
+    return redirect('accounts:login')

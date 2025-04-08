@@ -9,9 +9,15 @@ connect(db="ecommerce_db", host=settings.MONGO_URI)
 # MongoDB User Document
 class UserDocument(Document):
     email = StringField(required=True, unique=True)
-    name = StringField()
-    face_encoding = BinaryField()  # Store face encoding for recognition
+    name = StringField(max_length=255)  # Added name field
+    face_encoding = BinaryField()
 
+    meta = {
+        'indexes': [
+            {'fields': ['email'], 'unique': True, 'hidden': False}
+        ]
+    }
+    
 # Custom User Manager
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, name, password=None, **extra_fields):
@@ -24,8 +30,12 @@ class CustomUserManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
 
-        # Save to MongoDB
-        UserDocument(email=email, name=name).save()
+        # Sync with MongoDB
+        UserDocument.objects(email=email).update_one(
+            set__email=email,
+            set__name=name,  # Sync name field
+            upsert=True
+        )
         return user
 
     def create_superuser(self, email, name, password=None, **extra_fields):
@@ -58,7 +68,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         super().save(*args, **kwargs)
         try:
             UserDocument.objects(email=self.email).update_one(
-                set__name=self.name, upsert=True
+                set__email=self.email,
+                set__name=self.name,  # Sync name field
+                upsert=True
             )
         except Exception as e:
             print(f"MongoDB Sync Error: {e}")

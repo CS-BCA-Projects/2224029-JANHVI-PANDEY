@@ -1,0 +1,124 @@
+{% extends 'store/base.html' %}
+{% load currency_tags %}
+{% load cart_tags %}
+{% block title %}Checkout - SnapShop{% endblock %}
+{% block content %}
+<div class="container my-5">
+    <h1 class="text-center mb-4">Checkout</h1>
+
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if cart_items %}
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h3 class="mb-4">Order Items</h3>
+                        {% for item in cart_items %}
+                            <div class="d-flex align-items-center border-bottom py-3">
+                                <div class="me-3">
+                                    {% if item.product.image %}
+                                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-fluid rounded" style="width: 100px; height: 100px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-light text-center rounded" style="width: 100px; height: 100px; line-height: 100px; font-size: 14px;">
+                                            No Image
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="mb-1">{{ item.product.name }}</h5>
+                                    <p class="text-muted mb-1">{{ item.product.description|truncatewords:10 }}</p>
+                                    <p class="text-success fw-bold mb-1">Price: {{ item.product.price|to_inr }}</p>
+                                    <p class="text-muted mb-0">Quantity: {{ item.quantity }}</p>
+                                    <p class="text-muted mb-0">Subtotal: {{ item.product.price|multiply:item.quantity|to_inr }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h3 class="mb-4">Shipping Address</h3>
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="full_name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="full_name" name="full_name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="phone_number" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="phone_number" name="phone_number" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="address_line_1" class="form-label">Address Line 1 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="address_line_1" name="address_line_1" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="address_line_2" class="form-label">Address Line 2</label>
+                                <input type="text" class="form-control" id="address_line_2" name="address_line_2">
+                            </div>
+                            <div class="mb-3">
+                                <label for="city" class="form-label">City <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="city" name="city" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="state" class="form-label">State <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="state" name="state" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="postal_code" class="form-label">Postal Code <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="postal_code" name="postal_code" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="country" class="form-label">Country</label>
+                                <input type="text" class="form-control" id="country" name="country" value="India" readonly>
+                            </div>
+                            <div class="alert alert-info mb-3">
+                                <strong>Note:</strong> Payment will be <strong>Cash on Delivery (COD)</strong> only.
+                            </div>
+                            <div class="card shadow-sm mb-3">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">Order Summary</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Subtotal</span>
+                                        <span>{{ total_price|to_inr }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Shipping</span>
+                                        <span class="text-success">Free</span>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between fw-bold mb-3">
+                                        <span>Total</span>
+                                        <span>{{ total_price|to_inr }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">Confirm Order</button>
+                        </form>
+                        <a href="{% url 'store:view_cart' %}" class="btn btn-outline-secondary w-100 mt-2">Back to Cart</a> <!-- Fixed -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <h3 class="text-muted">Your cart is empty.</h3>
+            <p>Add some products to your cart to proceed to checkout!</p>
+            <a href="{% url 'store:home' %}" class="btn btn-primary">Shop Now</a> <!-- Fixed -->
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

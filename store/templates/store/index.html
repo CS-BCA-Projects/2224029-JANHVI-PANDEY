@@ -1,74 +1,56 @@
 {% extends 'store/base.html' %}
-{% load currency_tags %}
 {% block title %}SnapShop - Home{% endblock %}
 {% block content %}
-    <!-- Messages -->
+    <h1 class="text-center mb-4">Welcome to SnapShop Store!</h1>
+
+    <!-- Display Messages -->
     {% if messages %}
         {% for message in messages %}
-            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %} alert-dismissible fade show" role="alert">
                 {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         {% endfor %}
     {% endif %}
 
-    <h1 class="text-center">Welcome to SnapShop</h1>
-    
     <!-- Search Bar -->
-    <form method="get" action="{% url 'search_products' %}" class="mb-4">
-        <div class="input-group">
-            <input type="text" name="q" class="form-control" placeholder="Search products..." value="{{ query }}">
-            <button type="submit" class="btn btn-primary">Search</button>
-        </div>
-    </form>
+    <div class="input-group mb-4" style="max-width: 500px; margin: 0 auto;">
+        <form method="get" action="{% url 'store:home' %}" class="w-100">
+            <div class="input-group">
+                <input type="text" name="q" value="{{ query }}" placeholder="Search products..." class="form-control">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </form>
+    </div>
 
-    <!-- Section Tabs -->
-    <ul class="nav nav-tabs mb-4 justify-content-center">
-        <li class="nav-item">
-            <a class="nav-link {% if not selected_section %}active{% endif %}" href="{% url 'home' %}">All</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if selected_section == 'kids' %}active{% endif %}" href="{% url 'home' %}?section=kids">Kids</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if selected_section == 'men' %}active{% endif %}" href="{% url 'home' %}?section=men">Men</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if selected_section == 'women' %}active{% endif %}" href="{% url 'home' %}?section=women">Women</a>
-        </li>
-    </ul>
+    <!-- Section Filter -->
+    <div class="mb-4 text-center">
+        <a href="{% url 'store:home' %}?section=" class="btn btn-outline-primary {% if not selected_section %}active{% endif %} me-2">All</a>
+        <a href="{% url 'store:home' %}?section=men" class="btn btn-outline-primary {% if selected_section == 'men' %}active{% endif %} me-2">Men</a>
+        <a href="{% url 'store:home' %}?section=women" class="btn btn-outline-primary {% if selected_section == 'women' %}active{% endif %} me-2">Women</a>
+        <a href="{% url 'store:home' %}?section=kids" class="btn btn-outline-primary {% if selected_section == 'kids' %}active{% endif %}">Kids</a>
+    </div>
 
-    <h2>Our Products</h2>
+    <!-- Products -->
     <div class="row">
         {% for product in products %}
-            <div class="col-md-3 mb-3">
-                <div class="card product-card animate__animated animate__fadeIn h-100">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
                     {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top product-image">
+                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
                     {% else %}
-                        <div class="card-img-top text-center py-4 bg-light">
+                        <div class="card-img-top text-center py-5 bg-light">
                             <p>No image available</p>
                         </div>
                     {% endif %}
                     <div class="card-body d-flex flex-column">
-                        <h6 class="card-title mb-1">{{ product.name }}</h6>
-                        <p class="card-text text-muted small mb-2 text-truncate">{{ product.description }}</p>
-                        <h6 class="text-success mb-2">Price: {{ product.price|to_inr }}</h6>
-                        {% if product.stock > 0 %}
-                            <div class="mb-2">
-                                <small class="text-muted">Stock: {{ product.stock }}</small>
-                                <div class="progress" style="height: 4px;">
-                                    <div class="progress-bar {% if product.stock < 10 %}bg-danger{% elif product.stock < 50 %}bg-warning{% else %}bg-success{% endif %}" role="progressbar" style="width: {{ product.stock|floatformat:0 }}%;" aria-valuenow="{{ product.stock }}" aria-valuemin="0" aria-valuemax="100"></div>
-                                </div>
-                            </div>
-                            <div class="mt-auto d-flex justify-content-between">
-                                <a href="{% url 'add_to_cart' product.id %}" class="btn btn-primary btn-sm">Add to Cart</a>
-                                <a href="{% url 'buy_now' product.id %}" class="btn btn-success btn-sm">Buy Now</a>
-                            </div>
-                        {% else %}
-                            <div class="alert alert-danger text-center py-1 mt-auto" role="alert">
-                                Out of Stock
-                            </div>
-                        {% endif %}
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text">Price: ₹{{ product.price }}</p>
+                        <p class="card-text">Stock: {{ product.stock }}</p>
+                        <div class="mt-auto">
+                            <a href="{% url 'store:add_to_cart' product.id %}" class="btn btn-primary btn-sm me-2">Add to Cart</a>
+                            <a href="{% url 'store:buy_now' product.id %}" class="btn btn-success btn-sm">Buy Now</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -76,4 +58,22 @@
             <p class="text-center">No products found.</p>
         {% endfor %}
     </div>
+
+    <!-- Cart Link -->
+    <div class="text-center mt-4">
+        <a href="{% url 'store:view_cart' %}" class="btn btn-info">View Cart</a>
+    </div>
+
+    <!-- Logout Link -->
+    {% if user.is_authenticated %}
+        <p class="text-center mt-3">
+            Welcome, {{ user.name }}! 
+            <a href="{% url 'accounts:logout' %}" class="btn btn-outline-danger btn-sm">Logout</a>
+        </p>
+    {% else %}
+        <p class="text-center mt-3">
+            <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-sm me-2">Login</a> | 
+            <a href="{% url 'accounts:register' %}" class="btn btn-outline-success btn-sm">Register</a>
+        </p>
+    {% endif %}
 {% endblock %}

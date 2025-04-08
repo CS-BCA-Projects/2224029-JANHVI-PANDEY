@@ -1,0 +1,54 @@
+{% extends 'store/base.html' %}
+{% block title %}Edit Product - SnapShop{% endblock %}
+{% block content %}
+<div class="container my-5">
+    <h1 class="text-center mb-4">Edit Product</h1>
+
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_name" class="form-label">Name</label>
+            {{ form.name }}
+        </div>
+        <div class="mb-3">
+            <label for="id_description" class="form-label">Description</label>
+            {{ form.description }}
+        </div>
+        <div class="mb-3">
+            <label for="id_price" class="form-label">Price</label>
+            {{ form.price }}
+        </div>
+        <div class="mb-3">
+            <label for="id_stock" class="form-label">Stock</label>
+            {{ form.stock }}
+        </div>
+        <div class="mb-3">
+            <label for="id_image" class="form-label">Image</label>
+            {{ form.image }}
+        </div>
+        <div class="mb-3">
+            <label for="id_category" class="form-label">Category</label>
+            {{ form.category }}
+        </div>
+        <div class="mb-3">
+            <label for="id_brand" class="form-label">Brand</label>
+            {{ form.brand }}
+        </div>
+        <div class="mb-3">
+            <label for="id_section" class="form-label">Section</label>
+            {{ form.section }}
+        </div>
+        <button type="submit" class="btn btn-primary">Update Product</button>
+        <a href="{% url 'seller_dashboard' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

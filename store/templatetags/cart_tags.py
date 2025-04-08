@@ -8,3 +8,10 @@ def multiply(value, arg):
         return float(value) * float(arg)
     except (ValueError, TypeError):
         return 0
+
+@register.filter
+def to_inr(value):
+    try:
+        return f"₹{float(value):.2f}"
+    except (ValueError, TypeError):
+        return "₹0.00"

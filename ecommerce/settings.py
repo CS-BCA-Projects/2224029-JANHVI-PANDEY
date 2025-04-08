@@ -1,10 +1,11 @@
 from pathlib import Path
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-29t+xg22jix8^&h*(36$bv6k5@m2@9fcl_!-msp3exgiaa-#ke'
-DEBUG = True
-ALLOWED_HOSTS = ["*"]
+DEBUG = True  # Set to False for production
+ALLOWED_HOSTS = ["*"]  # Restrict to specific hosts in production (e.g., ["yourdomain.com"])
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -15,11 +16,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts',
     'store',
+    'seller_dashboard',
+    'corsheaders',  # Add this for CORS support
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Add this before CommonMiddleware
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -32,7 +36,7 @@ ROOT_URLCONF = 'ecommerce.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -71,10 +75,25 @@ TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
+# Static and Media Files
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = BASE_DIR / "staticfiles"
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'  # Use Path object for consistency
+
+# CORS Settings for Camera Access
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+CORS_ALLOW_ALL_ORIGINS = True  # For testing; set to False in production
+
+# Security Settings (Temporary for Testing)
+SECURE_CONTENT_TYPE_NOSNIFF = False  # Allow media types for camera data
+X_FRAME_OPTIONS = 'SAMEORIGIN'  # Prevent clickjacking
+
+# Install corsheaders
+# Run: pip install django-cors-headers
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

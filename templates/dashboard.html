@@ -1,0 +1,75 @@
+{% extends 'store/base.html' %}
+{% load currency_filters %}
+{% block title %}Seller Dashboard - SnapShop{% endblock %}
+{% block content %}
+<div class="container my-5">
+    <h1 class="text-center mb-4">Seller Dashboard</h1>
+
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Products Section -->
+    <h3 class="mb-3">Your Products</h3>
+    {% if products %}
+        <div class="row">
+            {% for product in products %}
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top text-center py-4 bg-light">
+                                <p>No image available</p>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text">Price: {{ product.price|to_inr }}</p>
+                            <p class="card-text">Stock: {{ product.stock }}</p>
+                            <a href="{% url 'edit_product' product.id %}" class="btn btn-primary btn-sm">Edit</a>
+                            <a href="{% url 'delete_product' product.id %}" class="btn btn-danger btn-sm">Delete</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <a href="{% url 'add_product' %}" class="btn btn-success mt-3">Add New Product</a>
+    {% else %}
+        <p class="text-center">You have no products yet.</p>
+        <a href="{% url 'add_product' %}" class="btn btn-success">Add New Product</a>
+    {% endif %}
+
+    <!-- Orders Section -->
+    <h3 class="mt-5 mb-3">Your Orders</h3>
+    {% if orders %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>{{ order.created_at|date:"M d, Y, h:i A" }}</td>
+                        <td>{{ order.total_price|to_inr }}</td>
+                        <td>Pending</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="text-center">You have no orders yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
